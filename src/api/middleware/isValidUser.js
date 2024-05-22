@@ -5,7 +5,8 @@ export default async (req, res, next) => {
   const token = req.headers.authorization
   const publicRoute =
     ((req.method === 'PUT' && req.url.includes("/s3/upload")) ||
-    (req.method === 'POST' && req.url.includes("/image/upload")))
+    (req.method === 'POST' && req.url.includes("/image/upload")) ||
+    (req.method === 'POST' && req.url.includes("/auth/login")))
   if (publicRoute) {
     next()
   } else {

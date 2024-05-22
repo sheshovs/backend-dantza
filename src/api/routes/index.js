@@ -1,6 +1,7 @@
 import express from "express";
 import S3Controller from "../modules/S3/S3.controller.js";
 import ImageController from "../modules/Image/image.controller.js";
+import AuthController from "../modules/Auth/auth.controller.js";
 
 const router = express.Router();
 
@@ -10,9 +11,9 @@ const router = express.Router();
 // Image
 router.route('/image/upload').post(ImageController.upload);
 
-// // Auth
-// router.route('/auth/login').post(AuthController.Login);
-// router.route('/auth/current').get(AuthController.CurrentUser);
+// Auth
+router.route('/auth/login').post(AuthController.Login);
+router.route('/auth/current').get(AuthController.CurrentUser);
 // // Orders
 // router.route('/orders').get(OrderController.GetOrders);
 // router.route('/order/:orderId').get(OrderController.GetOrder);
