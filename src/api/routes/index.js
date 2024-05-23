@@ -2,6 +2,7 @@ import express from "express";
 import S3Controller from "../modules/S3/S3.controller.js";
 import ImageController from "../modules/Image/image.controller.js";
 import AuthController from "../modules/Auth/auth.controller.js";
+import DisciplineController from "../modules/Discipline/discipline.controller.js";
 
 const router = express.Router();
 
@@ -14,11 +15,9 @@ router.route('/image/upload').post(ImageController.upload);
 // Auth
 router.route('/auth/login').post(AuthController.Login);
 router.route('/auth/current').get(AuthController.CurrentUser);
-// // Orders
-// router.route('/orders').get(OrderController.GetOrders);
-// router.route('/order/:orderId').get(OrderController.GetOrder);
-// router.route('/orderWithEvents').post(OrderController.CreateOrderWithEvents);
-// // Rooms
-// router.route('/rooms').get(RoomController.GetRooms)
+
+// Discipline
+router.route('/discipline').post(DisciplineController.Create);
+router.route('/discipline').get(DisciplineController.GetAll);
 
 export default router;

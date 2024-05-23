@@ -21,6 +21,45 @@ const ImageController = {
     res.status(200).json({
       data: resData
     });
+  },
+  async uploadMultiple(files) {
+    const images = [];
+
+    if(Array.isArray(files)) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const uuid = uuidv4();
+  
+        const imageData = await S3Service.uploadFile(uuid, file);
+  
+        const payload = {
+          uuid,
+          name: imageData.name,
+          url: imageData.url,
+          isMain: i === 0
+        }
+  
+        const resData = await ImageService.createImage(payload);
+  
+        images.push(resData);
+      }
+    } else {
+      const uuid = uuidv4();
+
+      const imageData = await S3Service.uploadFile(uuid, files);
+
+      const payload = {
+        uuid,
+        name: imageData.name,
+        url: imageData.url,
+        isMain: true
+      }
+
+      const resData = await ImageService.createImage(payload);
+
+      images.push(resData);
+    }
+    return images;
   }
 }
 
