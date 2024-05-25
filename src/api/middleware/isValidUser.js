@@ -6,7 +6,9 @@ export default async (req, res, next) => {
   const publicRoute =
     ((req.method === 'PUT' && req.url.includes("/s3/upload")) ||
     (req.method === 'POST' && req.url.includes("/image/upload")) ||
-    (req.method === 'POST' && req.url.includes("/auth/login")))
+    (req.method === 'POST' && req.url.includes("/auth/login")) ||
+    (req.method === 'GET' && req.url.includes("/discipline")) ||
+    (req.method === 'GET' && req.url.includes("/teacher")))
   if (publicRoute) {
     next()
   } else {

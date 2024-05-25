@@ -25,7 +25,7 @@ const AuthController = {
       email
     }
 
-    const token = EncodeData(payload, "1h")
+    const token = EncodeData(payload)
 
     return res.status(StatusCodes.OK).send(token)
   },

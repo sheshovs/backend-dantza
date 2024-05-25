@@ -4,9 +4,7 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import fs from 'fs';
-import pkg from 'image-to-webp';
 import { getUrl } from './S3.controller.js';
-const { imageToWebp } = pkg;
 
 const { AWS_REGION,
   AWS_S3_BUCKET,
@@ -25,40 +23,16 @@ const { AWS_REGION,
 const S3Service = {
   async uploadFile(uuid, file) {
     try {
-      const { name, tempFilePath, mimetype } = file;
+      const { name, tempFilePath, mimetype } = file;      
 
-      const objectKey = `${uuid}.webp`;
-      const objectType = 'image/webp';
+      let objectName = `${name.replaceAll(' ', '_')}.${mimetype.split('/')[1]}`;
+      const objectKey = `${uuid}.${objectName.split('.')[1]}`;
 
       const params = {
         Bucket: AWS_S3_BUCKET,
-        Key: objectKey,
-        ContentType: objectType,
+        Key: objectName,
+        ContentType: mimetype,
       }
-
-      let objectName = ''
-
-      console.log(mimetype)
-
-      if(!mimetype.includes('webp')){
-        console.log('Converting to webp')
-        const webpFilePath = await imageToWebp(tempFilePath, '80');
-        objectName = `${name.replaceAll(' ', '_').split('.')[0]}.webp`;
-  
-        const stream = fs.createReadStream(webpFilePath);
-        params['Body'] = stream;
-
-        await s3Client.send(
-          new PutObjectCommand(params)
-        );
-  
-        return {
-          name: objectName,
-          url: getUrl(objectKey)
-        }
-      }
-
-      objectName = `${name.replaceAll(' ', '_')}`;
 
       const stream = fs.createReadStream(tempFilePath);
       params['Body'] = stream;

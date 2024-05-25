@@ -11,7 +11,6 @@ const DisciplineService = {
   },
   getAllDisciplines: async () => {  
     try {
-      //obtener disciplina, luego obtener imagenes de disciplina
       const disciplines = await pg('public.Discipline').select('*');
       await Promise.all(disciplines.map(async discipline => {
         const images = await pg('public.DisciplineImage').select('*').where('disciplineId', discipline.uuid);
@@ -30,7 +29,7 @@ const DisciplineService = {
     } catch (error) {
       console.log(error)
     }
-  }
+  },
 }
 
 export default DisciplineService;
