@@ -25,12 +25,12 @@ const S3Service = {
     try {
       const { name, tempFilePath, mimetype } = file;      
 
-      let objectName = `${name.replaceAll(' ', '_')}.${mimetype.split('/')[1]}`;
-      const objectKey = `${uuid}.${objectName.split('.')[1]}`;
+      let objectName = `${name.replaceAll(' ', '_')}`;
+      const objectKey = `${uuid}.${mimetype.split('/')[1]}`;
 
       const params = {
         Bucket: AWS_S3_BUCKET,
-        Key: objectName,
+        Key: objectKey,
         ContentType: mimetype,
       }
 
