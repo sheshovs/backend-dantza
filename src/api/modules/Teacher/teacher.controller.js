@@ -69,6 +69,11 @@ const TeacherController = {
     const data = await TeacherService.getAllTeachers();
     res.status(200).json(data);
   },
+  GetByUuid: async (req, res) => {
+    const { uuid } = req.params;
+    const data = await TeacherService.getTeacherByUuid(uuid);
+    res.status(200).json(data);
+  }
 }
 
 export default TeacherController;

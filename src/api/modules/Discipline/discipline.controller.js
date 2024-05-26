@@ -45,6 +45,11 @@ const DisciplineController = {
     const data = await DisciplineService.getAllDisciplines();
     res.status(200).json(data);
   },
+  GetByUuid: async (req, res) => {
+    const { uuid } = req.params;
+    const data = await DisciplineService.getDisciplineByUuid(uuid);
+    res.status(200).json(data);
+  }
 }
 
 export default DisciplineController;

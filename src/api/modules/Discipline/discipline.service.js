@@ -30,6 +30,24 @@ const DisciplineService = {
       console.log(error)
     }
   },
+  getDisciplineByUuid: async (uuid) => {
+    try {
+      const discipline = await pg('public.Discipline').select('*').where('uuid', uuid).first();
+      const images = await pg('public.DisciplineImage').select('*').where('disciplineId', discipline.uuid);
+      const imageIds = images.map(image => image.imageId);
+      const imagesData = await ImageService.getImagesByIds(imageIds);
+      discipline.images = imagesData;
+
+      const teachers = await pg('public.TeacherDiscipline').select('*').where('disciplineId', discipline.uuid);
+      const teacherIds = teachers.map(teacher => teacher.teacherId);
+      const teachersData = await pg('public.Teacher').select('*').whereIn('uuid', teacherIds);
+      discipline.teachers = teachersData;
+
+      return discipline;
+    } catch (error) {
+      console.log(error)
+    }
+  }
 }
 
 export default DisciplineService;

@@ -20,9 +20,11 @@ router.route('/auth/current').get(AuthController.CurrentUser);
 // Discipline
 router.route('/discipline').post(DisciplineController.Create);
 router.route('/discipline').get(DisciplineController.GetAll);
+router.route('/discipline/:uuid').get(DisciplineController.GetByUuid);
 
 // Teacher
 router.route('/teacher').post(TeacherController.Create);
 router.route('/teacher').get(TeacherController.GetAll);
+router.route('/teacher/:uuid').get(TeacherController.GetByUuid);
 
 export default router;
