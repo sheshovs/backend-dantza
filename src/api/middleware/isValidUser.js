@@ -8,7 +8,8 @@ export default async (req, res, next) => {
     (req.method === 'POST' && req.url.includes("/image/upload")) ||
     (req.method === 'POST' && req.url.includes("/auth/login")) ||
     (req.method === 'GET' && req.url.includes("/discipline")) ||
-    (req.method === 'GET' && req.url.includes("/teacher")))
+    (req.method === 'GET' && req.url.includes("/teacher")) ||
+    (req.method === 'GET' && req.url.includes("/event")))
   if (publicRoute) {
     next()
   } else {

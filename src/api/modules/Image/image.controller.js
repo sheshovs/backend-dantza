@@ -34,7 +34,7 @@ const ImageController = {
   
         const payload = {
           uuid,
-          name: imageData.name,
+          name: imageData.name.slice(0,40),
           url: imageData.url,
           isMain: i === 0
         }
@@ -50,7 +50,7 @@ const ImageController = {
 
       const payload = {
         uuid,
-        name: imageData.name,
+        name: imageData.name.slice(0,40),
         url: imageData.url,
         isMain: true
       }

@@ -4,6 +4,7 @@ import ImageController from "../modules/Image/image.controller.js";
 import AuthController from "../modules/Auth/auth.controller.js";
 import DisciplineController from "../modules/Discipline/discipline.controller.js";
 import TeacherController from "../modules/Teacher/teacher.controller.js";
+import EventController from "../modules/Event/event.controller.js";
 
 const router = express.Router();
 
@@ -26,5 +27,10 @@ router.route('/discipline/:uuid').get(DisciplineController.GetByUuid);
 router.route('/teacher').post(TeacherController.Create);
 router.route('/teacher').get(TeacherController.GetAll);
 router.route('/teacher/:uuid').get(TeacherController.GetByUuid);
+
+// Event
+router.route('/event').post(EventController.Create);
+router.route('/event').get(EventController.GetAll);
+router.route('/event/next').get(EventController.GetNextEvents);
 
 export default router;
