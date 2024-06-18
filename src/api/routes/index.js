@@ -20,6 +20,7 @@ router.route('/auth/current').get(AuthController.CurrentUser);
 
 // Discipline
 router.route('/discipline').post(DisciplineController.Create);
+router.route('/discipline/:uuid').patch(DisciplineController.Update);
 router.route('/discipline').get(DisciplineController.GetAll);
 router.route('/discipline/:uuid').get(DisciplineController.GetByUuid);
 

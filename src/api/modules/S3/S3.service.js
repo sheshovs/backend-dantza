@@ -2,6 +2,7 @@ import 'dotenv/config'
 import {
   S3Client,
   PutObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import fs from 'fs';
 import { getUrl } from './S3.controller.js';
@@ -47,6 +48,20 @@ const S3Service = {
       }
 
       
+    } catch (error) {
+      console.log(error)
+    }
+  },
+  async deleteFile(key) {
+    try {
+      const params = {
+        Bucket: AWS_S3_BUCKET,
+        Key: key
+      }
+
+      await s3Client.send(
+        new DeleteObjectCommand(params)
+      );
     } catch (error) {
       console.log(error)
     }

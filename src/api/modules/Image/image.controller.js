@@ -22,7 +22,7 @@ const ImageController = {
       data: resData
     });
   },
-  async uploadMultiple(files) {
+  async uploadMultiple(files, canBeMain = true) {
     const images = [];
 
     if(Array.isArray(files)) {
@@ -36,7 +36,7 @@ const ImageController = {
           uuid,
           name: imageData.name.slice(0,40),
           url: imageData.url,
-          isMain: i === 0
+          isMain: canBeMain ? i === 0 : false
         }
   
         const resData = await ImageService.createImage(payload);
@@ -52,7 +52,7 @@ const ImageController = {
         uuid,
         name: imageData.name.slice(0,40),
         url: imageData.url,
-        isMain: true
+        isMain: canBeMain
       }
 
       const resData = await ImageService.createImage(payload);
@@ -60,6 +60,19 @@ const ImageController = {
       images.push(resData);
     }
     return images;
+  },
+  async deleteImage(uuid) {
+    const image = await ImageService.getImageByUuid(uuid);
+
+    if(!image) {
+      return res.status(404).json({ message: "Imagen no encontrada" });
+    }
+
+    const imageKey = image.url.split('amazonaws.com/')[1];
+
+    await S3Service.deleteFile(imageKey);
+
+    await ImageService.deleteImage(uuid);
   }
 }
 

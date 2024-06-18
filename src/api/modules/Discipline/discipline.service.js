@@ -9,6 +9,13 @@ const DisciplineService = {
       console.log(error)
     }
   },
+  updateDiscipline: async (uuid, payload) => {
+    try {
+      return await pg('public.Discipline').update(payload).where('uuid', uuid).returning('*');
+    } catch (error) {
+      console.log(error)
+    }
+  },
   getAllDisciplines: async () => {  
     try {
       const disciplines = await pg('public.Discipline').select('*');
@@ -16,7 +23,7 @@ const DisciplineService = {
         const images = await pg('public.DisciplineImage').select('*').where('disciplineId', discipline.uuid);
         const imageIds = images.map(image => image.imageId);
         const imagesData = await ImageService.getImagesByIds(imageIds);
-        discipline.images = imagesData;
+        discipline.imagesUploaded = imagesData;
       }))
       return disciplines;
     } catch (error) {
@@ -36,7 +43,7 @@ const DisciplineService = {
       const images = await pg('public.DisciplineImage').select('*').where('disciplineId', discipline.uuid);
       const imageIds = images.map(image => image.imageId);
       const imagesData = await ImageService.getImagesByIds(imageIds);
-      discipline.images = imagesData;
+      discipline.imagesUploaded = imagesData;
 
       const teachers = await pg('public.TeacherDiscipline').select('*').where('disciplineId', discipline.uuid);
       const teacherIds = teachers.map(teacher => teacher.teacherId);
