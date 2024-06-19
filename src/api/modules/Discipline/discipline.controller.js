@@ -21,25 +21,27 @@ const DisciplineController = {
       schedule
     }
 
-    const [disciplineData] = await DisciplineService.createDiscipline(disciplinePayload);
+    try {
+      const [disciplineData] = await DisciplineService.createDiscipline(disciplinePayload);
 
-    const imagesData = await ImageController.uploadMultiple(images)
+      const imagesData = await ImageController.uploadMultiple(images)
 
-    const disciplineImagesPayload = imagesData.map(image => {
-      return {
-        disciplineId: disciplineData.uuid,
-        imageId: image.uuid
-      }
-    })
+      const disciplineImagesPayload = imagesData.map(image => {
+        return {
+          disciplineId: disciplineData.uuid,
+          imageId: image.uuid
+        }
+      })
 
-    await DisciplineService.createDisciplineImages(disciplineImagesPayload);
+      await DisciplineService.createDisciplineImages(disciplineImagesPayload);
 
-    res.status(200).json({
-      data: {
-        ...disciplineData,
-        imagesUploaded: imagesData
-      }
-    });
+      res.status(200).json({
+          ...disciplineData,
+          imagesUploaded: imagesData
+      });
+    } catch (error) {
+      console.log(error)
+    }
   },
   Update: async (req, res) => {
     const { uuid } = req.params;
@@ -83,18 +85,32 @@ const DisciplineController = {
       await DisciplineService.createDisciplineImages(disciplineImagesPayload);
     }
 
-    const disciplineImages = [...discipline.imagesUploaded.filter(image => imagesToDelete.includes(image.uuid)), ...imagesData];
+    const disciplineImages = [...discipline.imagesUploaded.filter(image => !imagesToDelete.includes(image.uuid)), ...imagesData];
 
     res.status(200).json({
-      data: {
         ...disciplineData,
         imagesUploaded: disciplineImages
-      }
     })
+  },
+  Delete: async (req, res) => {
+    const { uuid } = req.params;
+    const discipline = await DisciplineService.getDisciplineByUuid(uuid);
+
+    if(!discipline) {
+      return res.status(404).json({ message: "Disciplina no encontrada" });
+    }
+
+    await Promise.all(discipline.imagesUploaded.map(async image => {
+      await ImageController.deleteImage(image.uuid);
+    }))
+
+    await DisciplineService.deleteDiscipline(uuid);
+
+    res.status(200).json({ message: "Disciplina eliminada" });
   },
   GetAll: async (req, res) => {
     const data = await DisciplineService.getAllDisciplines();
-    res.status(200).json(data);
+    res.status(200).json([...data]);
   },
   GetByUuid: async (req, res) => {
     const { uuid } = req.params;

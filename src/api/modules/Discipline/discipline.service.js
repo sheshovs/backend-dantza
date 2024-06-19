@@ -16,6 +16,13 @@ const DisciplineService = {
       console.log(error)
     }
   },
+  deleteDiscipline: async (uuid) => {
+    try {
+      return await pg('public.Discipline').delete().where('uuid', uuid).returning('*');
+    } catch (error) {
+      console.log(error)
+    }
+  },
   getAllDisciplines: async () => {  
     try {
       const disciplines = await pg('public.Discipline').select('*');

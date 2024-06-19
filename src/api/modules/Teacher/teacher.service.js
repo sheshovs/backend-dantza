@@ -9,6 +9,13 @@ const TeacherService = {
       console.log(error)
     }
   },
+  updateTeacher: async (uuid, payload) => {
+    try {
+      return await pg('public.Teacher').update(payload).where('uuid', uuid).returning('*');
+    } catch (error) {
+      console.log(error)
+    }
+  },
   getAllTeachers: async () => {  
     try {
       const teachers = await pg('public.Teacher').select('*');
@@ -16,7 +23,7 @@ const TeacherService = {
         const images = await pg('public.TeacherImage').select('*').where('teacherId', teacher.uuid);
         const imageIds = images.map(image => image.imageId);
         const imagesData = await ImageService.getImagesByIds(imageIds);
-        teacher.images = imagesData;
+        teacher.imagesUploaded = imagesData;
 
         const disciplines = await pg('public.TeacherDiscipline').select('*').where('teacherId', teacher.uuid);
         const disciplineIds = disciplines.map(discipline => discipline.disciplineId);
@@ -59,7 +66,7 @@ const TeacherService = {
       const images = await pg('public.TeacherImage').select('*').where('teacherId', teacher.uuid);
       const imageIds = images.map(image => image.imageId);
       const imagesData = await ImageService.getImagesByIds(imageIds);
-      teacher.images = imagesData;
+      teacher.imagesUploaded = imagesData;
 
       const disciplines = await pg('public.TeacherDiscipline').select('*').where('teacherId', teacher.uuid);
       const disciplineIds = disciplines.map(discipline => discipline.disciplineId);
@@ -68,6 +75,20 @@ const TeacherService = {
       teacher.disciplines = disciplinesData;
 
       return teacher;
+    } catch (error) {
+      console.log(error)
+    }
+  },
+  deleteTeacherDisciplines: async (teacherId, disciplineIds) => {
+    try {
+      return await pg('public.TeacherDiscipline').delete().where('teacherId', teacherId).whereIn('disciplineId', disciplineIds);
+    } catch (error) {
+      console.log(error)
+    }
+  },
+  deleteTeacher: async (uuid) => {
+    try {
+      return await pg('public.Teacher').delete().where('uuid', uuid);
     } catch (error) {
       console.log(error)
     }

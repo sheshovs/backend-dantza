@@ -23,11 +23,14 @@ router.route('/discipline').post(DisciplineController.Create);
 router.route('/discipline/:uuid').patch(DisciplineController.Update);
 router.route('/discipline').get(DisciplineController.GetAll);
 router.route('/discipline/:uuid').get(DisciplineController.GetByUuid);
+router.route('/discipline/:uuid').delete(DisciplineController.Delete);
 
 // Teacher
 router.route('/teacher').post(TeacherController.Create);
+router.route('/teacher/:uuid').patch(TeacherController.Update);
 router.route('/teacher').get(TeacherController.GetAll);
 router.route('/teacher/:uuid').get(TeacherController.GetByUuid);
+router.route('/teacher/:uuid').delete(TeacherController.Delete);
 
 // Event
 router.route('/event').post(EventController.Create);
