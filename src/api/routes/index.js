@@ -34,7 +34,9 @@ router.route('/teacher/:uuid').delete(TeacherController.Delete);
 
 // Event
 router.route('/event').post(EventController.Create);
+router.route('/event/:uuid').patch(EventController.Update);
 router.route('/event').get(EventController.GetAll);
 router.route('/event/next').get(EventController.GetNextEvents);
+router.route('/event/:uuid').delete(EventController.Delete);
 
 export default router;

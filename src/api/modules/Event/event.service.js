@@ -10,6 +10,20 @@ const EventService = {
       console.log(error)
     }
   },
+  updateEvent: async (uuid, payload) => {
+    try {
+      return await pg('public.Event').where('uuid', uuid).update(payload).returning('*');
+    } catch (error) {
+      console.log(error)
+    }
+  },
+  deleteEvent: async (uuid) => {
+    try {
+      return await pg('public.Event').delete().where('uuid', uuid).returning('*');
+    } catch (error) {
+      console.log(error)
+    }
+  },
   createEventImages: async (payload) => {
     try {
       return await pg('public.EventImage').insert(payload).returning('*');
@@ -24,7 +38,7 @@ const EventService = {
         const images = await pg('public.EventImage').select('*').where('eventId', event.uuid);
         const imageIds = images.map(image => image.imageId);
         const imagesData = await ImageService.getImagesByIds(imageIds);
-        event.images = imagesData;
+        event.imagesUploaded = imagesData;
       }))
       return events;
     } catch (error) {
@@ -38,9 +52,24 @@ const EventService = {
         const images = await pg('public.EventImage').select('*').where('eventId', event.uuid);
         const imageIds = images.map(image => image.imageId);
         const imagesData = await ImageService.getImagesByIds(imageIds);
-        event.images = imagesData;
+        event.imagesUploaded = imagesData;
       }))
       return events;
+    } catch (error) {
+      console.log(error)
+    }
+  },
+  getEventByUuid: async (uuid) => {
+    try {
+      const [event] = await pg('public.Event').select('*').where('uuid', uuid);
+      if(!event) {
+        return null
+      };
+      const images = await pg('public.EventImage').select('*').where('eventId', event.uuid);
+      const imageIds = images.map(image => image.imageId);
+      const imagesData = await ImageService.getImagesByIds(imageIds);
+      event.imagesUploaded = imagesData;
+      return event;
     } catch (error) {
       console.log(error)
     }
