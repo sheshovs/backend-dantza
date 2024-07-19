@@ -22,7 +22,7 @@ const ImageController = {
       data: resData
     });
   },
-  async uploadMultiple(files, canBeMain = true) {
+  async uploadMultiple({files, mainImageName, canBeMain = true}) {
     const images = [];
 
     if(Array.isArray(files)) {
@@ -36,7 +36,7 @@ const ImageController = {
           uuid,
           name: imageData.name.slice(0,40),
           url: imageData.url,
-          isMain: canBeMain ? i === 0 : false
+          isMain: mainImageName.replaceAll(' ', '_').includes(imageData.name) && canBeMain
         }
   
         const resData = await ImageService.createImage(payload);
@@ -52,7 +52,7 @@ const ImageController = {
         uuid,
         name: imageData.name.slice(0,40),
         url: imageData.url,
-        isMain: canBeMain
+        isMain: mainImageName.replaceAll(' ', '_').includes(imageData.name) && canBeMain
       }
 
       const resData = await ImageService.createImage(payload);
@@ -60,6 +60,59 @@ const ImageController = {
       images.push(resData);
     }
     return images;
+  },
+  async updateUploadedImages({images, newImages, mainImageName}) {
+    const allImages = [];
+    const actualMainImage = images.find(image => image.isMain);
+    const imageIsStillMain = actualMainImage ? mainImageName.replaceAll(' ', '_').includes(actualMainImage.name) : false;
+
+    if(Array.isArray(newImages)) {
+      for (let i = 0; i < newImages.length; i++) {
+        const file = newImages[i];
+        const uuid = uuidv4();
+  
+        const imageData = await S3Service.uploadFile(uuid, file);    
+        const payload = {
+          uuid,
+          name: imageData.name.slice(0,40),
+          url: imageData.url,
+          isMain: !imageIsStillMain ? mainImageName === file.name : false
+        }
+    
+        const resData = await ImageService.createImage(payload);
+    
+        allImages.push(resData);
+      }
+    } else {
+      const uuid = uuidv4();
+  
+      const imageData = await S3Service.uploadFile(uuid, newImages);
+  
+      const payload = {
+        uuid,
+        name: imageData.name.slice(0,40),
+        url: imageData.url,
+        isMain: !imageIsStillMain ? mainImageName === newImages.name : false
+      }
+  
+      const resData = await ImageService.createImage(payload);
+  
+      allImages.push(resData);
+    }
+
+    if(!imageIsStillMain && actualMainImage) {
+      await ImageService.updateMainImage(actualMainImage.uuid, false);
+    }
+
+    const newMainImage = allImages.find(image => image.isMain);
+    if(!newMainImage) {
+      const mainImage = images.find(image => mainImageName.replaceAll(' ', '_').includes(image.name));
+      if(mainImage) {
+        await ImageService.updateMainImage(mainImage.uuid, true);
+      }
+    }
+
+    return allImages
   },
   async deleteImage(uuid) {
     const image = await ImageService.getImageByUuid(uuid);

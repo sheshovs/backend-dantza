@@ -61,6 +61,16 @@ const DisciplineService = {
     } catch (error) {
       console.log(error)
     }
+  },
+  getDisciplineImages: async (uuid) => {
+    try {
+      const images = await pg('public.DisciplineImage').select('*').where('disciplineId', uuid);
+      const imageIds = images.map(image => image.imageId);
+      const imagesData = await ImageService.getImagesByIds(imageIds);
+      return imagesData;
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
 

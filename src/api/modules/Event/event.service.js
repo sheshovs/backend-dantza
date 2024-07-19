@@ -73,6 +73,15 @@ const EventService = {
     } catch (error) {
       console.log(error)
     }
+  },
+  getEventImages: async (eventId) => {
+    try {
+      const images = await pg('public.EventImage').select('*').where('eventId', eventId);
+      const imageIds = images.map(image => image.imageId);
+      const imagesData = await ImageService.getImagesByIds(imageIds);
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
 

@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import EventService from './event.service.js';
 import ImageController from '../Image/image.controller.js';
+import ImageService from '../Image/image.service.js';
 
 const EventController = {
   Create: async (req, res) => {
-    const { name, description, location, date } = req.body;
-    if(!name || !description || !location || !date) {
+    const { name, description, location, date, mainImageName } = req.body;
+    if(!name || !description || !location || !date || !mainImageName) {
       return res.status(400).json({ message: "Faltan parámetros" });
     }
 
@@ -17,30 +18,36 @@ const EventController = {
       date
     }
 
-    const [eventData] = await EventService.createEvent(eventPayload);
+    try {
+      const [eventData] = await EventService.createEvent(eventPayload);
 
-    const imagesDataEvent = [];
+      const imagesDataEvent = [];
 
-    if(req.files && req.files.images){
-      const { images } = req.files;
-      const imagesData = await ImageController.uploadMultiple(images)
+      if(req.files && req.files.images){
+        const { images } = req.files;
+        const imagesData = await ImageController.uploadMultiple({
+          files: images,
+          mainImageName
+        })
 
-      const eventImagesPayload = imagesData.map(image => {
-        return {
-          eventId: eventData.uuid,
-          imageId: image.uuid
-        }
-      })
-      await EventService.createEventImages(eventImagesPayload);
+        const eventImagesPayload = imagesData.map(image => {
+          return {
+            eventId: eventData.uuid,
+            imageId: image.uuid
+          }
+        })
+        await EventService.createEventImages(eventImagesPayload);
 
-      imagesDataEvent.push(imagesData);
+        imagesDataEvent.push(imagesData);
+      }
+
+      res.status(200).json({
+          ...eventData,
+          imagesUploaded: imagesDataEvent
+      });
+    } catch (error) {
+      console.log(error)
     }
-
-
-    res.status(200).json({
-        ...eventData,
-        imagesUploaded: imagesDataEvent
-    });
   },
   Update: async (req, res) => {
     const { uuid } = req.params;
@@ -50,7 +57,7 @@ const EventController = {
       return res.status(404).json({ message: "Evento no encontrado" });
     }
 
-    const { name, description, location, date, imagesUploaded } = req.body;
+    const { name, description, location, date, imagesUploaded, mainImageName } = req.body;
     const eventPayload = {
       name: name || event.name,
       description: description || event.description,
@@ -73,9 +80,13 @@ const EventController = {
 
     const images = req.files?.images;
     let imagesData = [];
-
+    const eventImagesUploaded = await EventService.getEventImages(eventData.uuid);
     if(images){
-      imagesData = await ImageController.uploadMultiple(images, false);
+      imagesData = await ImageController.updateUploadedImages({
+        images: eventImagesUploaded,
+        newImages: images,
+        mainImageName,
+      })
       const eventImagesPayload = imagesData.map(image => {
         return {
           eventId: eventData.uuid,
@@ -83,6 +94,26 @@ const EventController = {
         }
       })
       await EventService.createEventImages(eventImagesPayload);
+    } else {
+      const formatedMainImageName = mainImageName.replaceAll(' ', '_');
+      const mainImage = eventImagesUploaded.find(image => image.isMain);
+      if(mainImageName && mainImage && !formatedMainImageName.includes(mainImage.name)) {
+        await ImageService.updateMainImage(mainImage.uuid, false);
+        event.imagesUploaded = event.imagesUploaded.map(image => {
+          if(image.uuid === newMainImage.uuid) {
+            image.isMain = false;
+          }
+          return image;
+        })
+      }
+      const newMainImage = eventImagesUploaded.find(image => formatedMainImageName.includes(image.name));
+      await ImageService.updateMainImage(newMainImage.uuid, true);
+      event.imagesUploaded = event.imagesUploaded.map(image => {
+        if(image.uuid === newMainImage.uuid) {
+          image.isMain = true;
+        }
+        return image;
+      })
     }
 
     const eventImages = [...event.imagesUploaded.filter(image => !imagesToDelete.includes(image.uuid)), ...imagesData];

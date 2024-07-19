@@ -1,11 +1,12 @@
 import {v4 as uuidv4} from 'uuid';
 import ImageController from '../Image/image.controller.js';
 import TeacherService from './teacher.service.js';
+import ImageService from '../Image/image.service.js';
 
 const TeacherController = {
   Create: async (req, res) => {
-    const { name, description, disciplines } = req.body;
-    if(!name || !description) {
+    const { name, description, disciplines, mainImageName } = req.body;
+    if(!name || !description || !mainImageName) {
       return res.status(400).json({ message: "Faltan parámetros" });
     }
 
@@ -23,7 +24,10 @@ const TeacherController = {
     try {
       const [teacherData] = await TeacherService.createTeacher(teacherPayload);
 
-      const imagesData = await ImageController.uploadMultiple(images)
+      const imagesData = await ImageController.uploadMultiple({
+        files: images,
+        mainImageName
+      })
 
       const teacherImagesPayload = imagesData.map(image => {
         return {
@@ -71,7 +75,7 @@ const TeacherController = {
       return res.status(404).json({ message: "Profesor no encontrado" });
     }
 
-    const { name, description, disciplines, imagesUploaded } = req.body;
+    const { name, description, disciplines, imagesUploaded, mainImageName } = req.body;
     const teacherPayload = {
       name: name || teacher.name,
       description: description || teacher.description,
@@ -92,9 +96,13 @@ const TeacherController = {
 
     const images = req.files?.images;
     let imagesData = [];
-
+    const teacherImagesUploaded = await TeacherService.getTeacherImages(teacherData.uuid);
     if(images){
-      imagesData = await ImageController.uploadMultiple(images, false);
+      imagesData = await ImageController.updateUploadedImages({
+        images: teacherImagesUploaded,
+        newImages: images,
+        mainImageName,
+      })
       const teacherImagesPayload = imagesData.map(image => {
         return {
           teacherId: teacherData.uuid,
@@ -102,6 +110,26 @@ const TeacherController = {
         }
       })
       await TeacherService.createTeacherImages(teacherImagesPayload);
+    } else {
+      const formatedMainImageName = mainImageName.replaceAll(' ', '_');
+      const mainImage = teacherImagesUploaded.find(image => image.isMain);
+      if(mainImageName && mainImage && !formatedMainImageName.includes(mainImage.name)) {
+        await ImageService.updateMainImage(mainImage.uuid, false);
+        teacher.imagesUploaded = teacher.imagesUploaded.map(image => {
+          if(image.uuid === mainImage.uuid) {
+            image.isMain = false;
+          }
+          return image;
+        })
+      }
+      const newMainImage = teacherImagesUploaded.find(image => formatedMainImageName.includes(image.name));
+      await ImageService.updateMainImage(newMainImage.uuid, true);
+      teacher.imagesUploaded = teacher.imagesUploaded.map(image => {
+        if(image.uuid === newMainImage.uuid) {
+          image.isMain = true;
+        }
+        return image;
+      })
     }
     
     const teacherImages = [...teacher.imagesUploaded.filter(image => !imagesToDelete.includes(image.uuid)), ...imagesData];

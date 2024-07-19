@@ -92,6 +92,16 @@ const TeacherService = {
     } catch (error) {
       console.log(error)
     }
+  },
+  getTeacherImages: async (teacherId) => {
+    try {
+      const images = await pg('public.TeacherImage').select('*').where('teacherId', teacherId);
+      const imageIds = images.map(image => image.imageId);
+      const imagesData = await ImageService.getImagesByIds(imageIds);
+      return imagesData;
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
 

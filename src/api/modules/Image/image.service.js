@@ -30,6 +30,13 @@ const ImageService = {
     } catch (error) {
       console.log(error)
     }
+  },
+  async updateMainImage(uuid, isMain) {
+    try {
+      return await pg('public.Image').update({ isMain }).where('uuid', uuid).returning('*');
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
 

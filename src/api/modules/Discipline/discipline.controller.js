@@ -1,11 +1,12 @@
 import {v4 as uuidv4} from 'uuid';
 import DisciplineService from './discipline.service.js';
 import ImageController from '../Image/image.controller.js';
+import ImageService from '../Image/image.service.js';
 
 const DisciplineController = {
   Create: async (req, res) => {
-    const { name, description, schedule } = req.body;
-    if(!name || !description || !schedule) {
+    const { name, description, schedule, mainImageName } = req.body;
+    if(!name || !description || !schedule || !mainImageName) {
       return res.status(400).json({ message: "Faltan parámetros" });
     }
 
@@ -24,7 +25,10 @@ const DisciplineController = {
     try {
       const [disciplineData] = await DisciplineService.createDiscipline(disciplinePayload);
 
-      const imagesData = await ImageController.uploadMultiple(images)
+      const imagesData = await ImageController.uploadMultiple({
+        files: images,
+        mainImageName
+      })
 
       const disciplineImagesPayload = imagesData.map(image => {
         return {
@@ -51,7 +55,7 @@ const DisciplineController = {
       return res.status(404).json({ message: "Disciplina no encontrada" });
     }
 
-    const { name, description, schedule, imagesUploaded } = req.body;
+    const { name, description, schedule, imagesUploaded, mainImageName } = req.body;
     const disciplinePayload = {
       name: name || discipline.name,
       description: description || discipline.description,
@@ -73,9 +77,13 @@ const DisciplineController = {
 
     const images = req.files?.images;
     let imagesData = [];
-
+    const disciplineImagesUploaded = await DisciplineService.getDisciplineImages(discipline.uuid);
     if(images){
-      imagesData = await ImageController.uploadMultiple(images, false);
+      imagesData = await ImageController.updateUploadedImages({
+        images: disciplineImagesUploaded,
+        newImages: images,
+        mainImageName,
+      });
       const disciplineImagesPayload = imagesData.map(image => {
         return {
           disciplineId: disciplineData.uuid,
@@ -83,6 +91,26 @@ const DisciplineController = {
         }
       })
       await DisciplineService.createDisciplineImages(disciplineImagesPayload);
+    } else {
+      const formatedMainImageName = mainImageName.replaceAll(' ', '_');
+      const mainImage = disciplineImagesUploaded.find(image => image.isMain);
+      if(mainImageName && mainImage && !formatedMainImageName.includes(mainImage.name)) {
+        await ImageService.updateMainImage(mainImage.uuid, false);
+        discipline.imagesUploaded = discipline.imagesUploaded.map(image => {
+          if(image.uuid === mainImage.uuid) {
+            image.isMain = false;
+          }
+          return image;
+        })
+      }
+      const newMainImage = disciplineImagesUploaded.find(image => formatedMainImageName.includes(image.name));
+      await ImageService.updateMainImage(newMainImage.uuid, true);
+      discipline.imagesUploaded = discipline.imagesUploaded.map(image => {
+        if(image.uuid === newMainImage.uuid) {
+          image.isMain = true;
+        }
+        return image;
+      })
     }
 
     const disciplineImages = [...discipline.imagesUploaded.filter(image => !imagesToDelete.includes(image.uuid)), ...imagesData];
