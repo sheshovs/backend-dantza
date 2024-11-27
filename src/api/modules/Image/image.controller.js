@@ -63,7 +63,7 @@ const ImageController = {
   },
   async updateUploadedImages({images, newImages, mainImageName}) {
     const allImages = [];
-    const actualMainImage = images.find(image => image.isMain);
+    const actualMainImage = images?.find(image => image.isMain);
     const imageIsStillMain = actualMainImage ? mainImageName.replaceAll(' ', '_').includes(actualMainImage.name) : false;
 
     if(Array.isArray(newImages)) {

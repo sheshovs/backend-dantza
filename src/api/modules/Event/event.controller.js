@@ -6,7 +6,7 @@ import ImageService from '../Image/image.service.js';
 const EventController = {
   Create: async (req, res) => {
     const { name, description, location, date, mainImageName } = req.body;
-    if(!name || !description || !location || !date || !mainImageName) {
+    if(!name || !description || !location || !date) {
       return res.status(400).json({ message: "Faltan parámetros" });
     }
 
