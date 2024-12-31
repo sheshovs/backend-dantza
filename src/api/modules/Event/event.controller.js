@@ -6,7 +6,7 @@ import ImageService from '../Image/image.service.js';
 const EventController = {
   Create: async (req, res) => {
     const { name, description, location, date, mainImageName } = req.body;
-    if(!name || !description || !location || !date) {
+    if (!name || !description || !location || !date) {
       return res.status(400).json({ message: "Faltan parámetros" });
     }
 
@@ -23,7 +23,7 @@ const EventController = {
 
       const imagesDataEvent = [];
 
-      if(req.files && req.files.images){
+      if (req.files && req.files.images) {
         const { images } = req.files;
         const imagesData = await ImageController.uploadMultiple({
           files: images,
@@ -42,8 +42,8 @@ const EventController = {
       }
 
       res.status(200).json({
-          ...eventData,
-          imagesUploaded: imagesDataEvent
+        ...eventData,
+        imagesUploaded: imagesDataEvent
       });
     } catch (error) {
       console.log(error)
@@ -53,7 +53,7 @@ const EventController = {
     const { uuid } = req.params;
     const event = await EventService.getEventByUuid(uuid);
 
-    if(!event) {
+    if (!event) {
       return res.status(404).json({ message: "Evento no encontrado" });
     }
 
@@ -68,7 +68,7 @@ const EventController = {
     const [eventData] = await EventService.updateEvent(uuid, eventPayload);
     let imagesToDelete = []
 
-    if(Array.isArray(imagesUploaded) && imagesUploaded.length > 0) {
+    if (Array.isArray(imagesUploaded) && imagesUploaded.length > 0) {
       imagesToDelete = event.imagesUploaded.filter(image => !imagesUploaded.includes(image.uuid));
     } else {
       imagesToDelete = event.imagesUploaded.filter(image => image.uuid !== imagesUploaded);
@@ -81,7 +81,7 @@ const EventController = {
     const images = req.files?.images;
     let imagesData = [];
     const eventImagesUploaded = await EventService.getEventImages(eventData.uuid);
-    if(images){
+    if (images) {
       imagesData = await ImageController.updateUploadedImages({
         images: eventImagesUploaded,
         newImages: images,
@@ -96,38 +96,40 @@ const EventController = {
       await EventService.createEventImages(eventImagesPayload);
     } else {
       const formatedMainImageName = mainImageName.replaceAll(' ', '_');
-      const mainImage = eventImagesUploaded.find(image => image.isMain);
-      if(mainImageName && mainImage && !formatedMainImageName.includes(mainImage.name)) {
+      const mainImage = eventImagesUploaded?.find(image => image.isMain);
+      if (mainImageName && mainImage && !formatedMainImageName.includes(mainImage.name)) {
         await ImageService.updateMainImage(mainImage.uuid, false);
         event.imagesUploaded = event.imagesUploaded.map(image => {
-          if(image.uuid === newMainImage.uuid) {
+          if (image.uuid === newMainImage.uuid) {
             image.isMain = false;
           }
           return image;
         })
       }
-      const newMainImage = eventImagesUploaded.find(image => formatedMainImageName.includes(image.name));
-      await ImageService.updateMainImage(newMainImage.uuid, true);
-      event.imagesUploaded = event.imagesUploaded.map(image => {
-        if(image.uuid === newMainImage.uuid) {
-          image.isMain = true;
-        }
-        return image;
-      })
+      const newMainImage = eventImagesUploaded?.find(image => formatedMainImageName.includes(image.name));
+      if (newMainImage) {
+        await ImageService.updateMainImage(newMainImage.uuid, true);
+        event.imagesUploaded = event.imagesUploaded.map(image => {
+          if (image.uuid === newMainImage.uuid) {
+            image.isMain = true;
+          }
+          return image;
+        })
+      }
     }
 
     const eventImages = [...event.imagesUploaded.filter(image => !imagesToDelete.includes(image.uuid)), ...imagesData];
 
     res.status(200).json({
-        ...eventData,
-        imagesUploaded: eventImages
+      ...eventData,
+      imagesUploaded: eventImages
     })
   },
   Delete: async (req, res) => {
     const { uuid } = req.params;
     const event = await EventService.getEventByUuid(uuid);
 
-    if(!event) {
+    if (!event) {
       return res.status(404).json({ message: "Evento no encontrado" });
     }
 
